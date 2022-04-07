@@ -78,7 +78,7 @@
 </template>
 
 <script>
-import L /*, { marker }*/ from "leaflet";
+import L from "leaflet";
 import "leaflet.markercluster";
 import "leaflet-edgebuffer";
 import "leaflet-routing-machine";
@@ -265,7 +265,7 @@ export default {
                     edgeBufferTiles: 2,
                     visible: true,
                 }
-            ).addTo(this.map);
+            )
 
             const darkLayer = L.tileLayer(
                 "https://api.mapbox.com/styles/v1/mapbox/dark-v10/tiles/{z}/{x}/{y}?access_token=" +
@@ -280,6 +280,13 @@ export default {
                     visible: false,
                 }
             );
+
+            // Check the current theme of the browser
+            if (window.matchMedia && window.matchMedia("(prefers-color-scheme: dark)").matches) {
+                darkLayer.addTo(this.map);
+            } else {
+                lightLayer.addTo(this.map);
+            }
 
             L.control
                 .layers({
