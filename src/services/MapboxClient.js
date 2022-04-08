@@ -19,6 +19,7 @@ export class MapboxClient {
     }
 
     /**
+     * Récupère les coordonnées via l'api MapBox en fonction d'une adresse
      * 
      * @param {string} place 
      * @return {Promise<GetCoordsResponse>} 

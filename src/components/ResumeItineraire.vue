@@ -1,5 +1,5 @@
 <template>
-    <div class="trajet-container">
+    <div class="trajet-container bornes active">
         <div class="resume-etape">
             <div class="resume-title">
                 <p>étapes</p>
@@ -20,7 +20,6 @@
                             class="waypoint-text"
                         >
                             Vous êtes arrivé à une borne de recharge.
-                            
                         </span>
                         <span v-else>
                             {{ instruction.text }}
@@ -123,31 +122,28 @@ export default {
 
             return heure + "h " + ("0" + minute).slice(-2) + "m";
         },
+        // duree en secondes
         calculHeureArrivee(duree) {
             let date = new Date();
             let heureActuelle = date.getHours();
             let minuteActuelle = date.getMinutes();
 
-            let heure = Math.floor(duree / 3600);
-            let minute = Math.floor((duree % 3600) / 60);
+            let heureArrivee = Math.floor(duree / 3600);
+            let minuteArrivee = Math.floor((duree % 3600) / 60);
 
-            let heureCpt = heureActuelle + heure;
-            let minuteCpt = minuteActuelle + minute;
+            let heure = heureArrivee + heureActuelle;
+            let minute = minuteArrivee + minuteActuelle;
 
-            if (minuteCpt >= 60) {
-                heureCpt++;
-                minuteCpt -= 60;
+            if (minute >= 60) {
+                heure++;
+                minute = minute - 60;
             }
 
-            if (heureCpt >= 24) {
-                heureCpt = 0;
+            if (heure >= 24) {
+                heure = heure - 24;
             }
 
-            return (
-                ("0" + heureCpt).slice(-2) +
-                ":" +
-                ("0" + minuteCpt).slice(-2)
-            ).replace(":", "h");
+            return heure + "h " + ("0" + minute).slice(-2) + "m";
         },
         /**
          * Convertit une distance en mètre pour la rendre au format xx,xkm
@@ -274,6 +270,8 @@ export default {
 }
 
 .etape-instruction {
+    display: flex;
+    align-items:center;
     font-size: var(--font-size-text);
     cursor: pointer;
 }

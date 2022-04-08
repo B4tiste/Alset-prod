@@ -67,6 +67,7 @@ export default {
     },
     methods: {
         async setItineraire() {
+
             if (
                 this.departAdresse !== null &&
                 this.departAdresse.length > 0 &&
@@ -110,8 +111,28 @@ export default {
                     "update:coordonneesItineraire",
                     coordonneesItineraire
                 );
+                
+                this.showLeftSlider()
             }
         },
+        showLeftSlider() {
+            let btn = document.querySelector('.goOut');
+            let borne = document.querySelector('.bornes');
+            let menu = document.querySelector('.goOut')
+            let popupTrajet = document.querySelector('.rotate')
+            let trajetSlider = document.querySelector('.trajet')
+
+            if(!btn.classList.contains("follow") 
+                && !borne.classList.contains("active") 
+                && !menu.classList.contains("active")) {
+                btn.classList.toggle('follow')
+                borne.classList.toggle('active');
+                menu.classList.toggle('active');
+            }
+
+            popupTrajet.classList.toggle('up');
+            trajetSlider.classList.toggle('active')
+        }
     },
 };
 </script>

@@ -13,7 +13,6 @@ export default {
             let trajet = document.querySelector('.trajet');
             let chevron = document.querySelector('.rotate')
 
-
             trajet.classList.toggle('active');
             chevron.classList.toggle('up');
         }  
@@ -28,7 +27,7 @@ export default {
     top: 0;
     left: 50%;
     transform: translate(-50%,-15px);
-    min-width: 50px;
+    min-width: 90px;
     height: 35px;
     border-bottom-left-radius: 20px;
     border-bottom-right-radius: 20px;
@@ -47,13 +46,13 @@ export default {
     content: "Recherche d'itinéraire";
     position: absolute;
     top: 5px;
-    left: 55px;
+    left: 100px;
     width: 190px;
-    padding: 3px;
+    padding: 5px;
     background-color: var(--white-bg);
     color: var(--indigo);
     font-family: var(--font-family-title);
-    font-size: 12px;
+    font-size: 14px;
     font-weight: bold;
 }
 

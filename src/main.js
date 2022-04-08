@@ -10,7 +10,6 @@ import shadowUrl from "leaflet/dist/images/marker-shadow.png";
 
 // Import du CSS de leaflet
 import "leaflet/dist/leaflet.css";
-import "./styles/main.css";
 
 delete L.Icon.Default.prototype._getIconUrl;
 

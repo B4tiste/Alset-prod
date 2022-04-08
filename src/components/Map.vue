@@ -35,42 +35,30 @@
                             id="batterie"
                             name="batterie"
                             min="0"
-                            max="500000"
+                            :max="picked ? connexionsCompatible[picked].autonomieMax : 500000"
                             step="1000"
                         />
                     </div>
-                    <div class="filter-vehicules">
-                        <div class="voitures-selector">
-                            <input
-                                v-model="picked"
-                                type="radio"
-                                id="tesla"
-                                name="tesla"
-                                value="superChargeur"
-                            />
-                            <label for="tesla">Tesla</label>
+                    <div class="vehicules">
+                        <div class="container-filter">
+                            Tri des véhicules
                         </div>
-                        <div class="voitures-selector">
-                            <input
-                                v-model="picked"
-                                type="radio"
-                                id="tesla"
-                                name="tesla"
-                                value="type2"
-                            />
-                            <label for="tesla">Zoé</label>
-                        </div>
-                        <div class="voitures-selector">
-                            <input
-                                v-model="picked"
-                                type="radio"
-                                id="aucun"
-                                name="aucun"
-                                value="aucun"
-                            />
-                            <label for="aucun">Aucun</label>
+                        <div class="filter-vehicules">
+                            <div 
+                                v-for="(value, key) in connexionsCompatible" 
+                                :key="key"    
+                                class="voitures-selector">
+                                <input
+                                    v-model="picked"
+                                    type="radio"
+                                    :id="key"
+                                    :value="key"
+                                />
+                                <label :for="key">{{ value.name }}</label>
+                            </div>
                         </div>
                     </div>
+                    
                 </div>
             </div>
         </div>
@@ -78,7 +66,7 @@
 </template>
 
 <script>
-import L /*, { marker }*/ from "leaflet";
+import L from "leaflet";
 import "leaflet.markercluster";
 import "leaflet-edgebuffer";
 import "leaflet-routing-machine";
@@ -98,6 +86,10 @@ import "leaflet-routing-machine";
  * @property {Date} date
  */
 
+const BORNES_TYPE2 = "type2"
+const BORNES_SUPERCHARGEUR = "superChargeur"
+const BORNES_AUCUN = "aucun"
+
 export default {
     props: {
         coordonneesItineraire: {
@@ -116,9 +108,9 @@ export default {
             map: null,
             /** @type L.Routing.Control */
             routingLayer: null,
-            autonomieMaxEnMetres: 350_000,
+            autonomieMaxEnMetres: 250_000,
             tailleIcone: null,
-            zoom: 6,
+            zoom: 8,
             /** @type number[] */
             centre: [46.514211736281354, 2.576609403696891],
             icons: {
@@ -150,14 +142,31 @@ export default {
                     shadowSize: [0, 0],
                     iconSize: this.tailleIcone,
                 }),
+                greenIcon: L.icon({
+                    iconUrl:
+                        "https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-2x-green.png",
+                    shadowUrl: "",
+                    shadowSize: [0, 0],
+                    iconSize: this.tailleIcone,
+                }),
             },
             connexionsCompatible: {
-                type2: {
+                [BORNES_TYPE2]: {
+                    name: "Zoé",
                     connexions: [25, 1036],
+                    autonomieMax: 290_000,
+
                 },
-                superChargeur: {
+                [BORNES_SUPERCHARGEUR]: {
+                    name: "Tesla",
                     connexions: [27],
+                    autonomieMax: 495_000,
                 },
+                [BORNES_AUCUN]: {
+                    name: "Aucun",
+                    connexions: [],
+                    autonomieMax: 500_000
+                }
             },
             /** @type L.markerClusterGroup */
             clusterGroup: null,
@@ -211,11 +220,21 @@ export default {
                             success.coords.longitude,
                         ];
                         this.zoom = 11;
-                        const positionActuelle = L.marker(this.centre, {
-                            icon: this.icons.blackIcon,
-                        }).bindTooltip(
-                            `<p class="chargeur-titre">Vous êtes ici</p>`
-                        );
+                        let positionActuelle = null;
+                        if (window.matchMedia && window.matchMedia("(prefers-color-scheme: dark)").matches) {
+
+                            positionActuelle = L.marker(this.centre, {
+                                icon: this.icons.blackIcon,
+                            }).bindTooltip(
+                                `<p class="chargeur-titre">Vous êtes ici</p>`
+                            );
+                        } else {
+                            positionActuelle = L.marker(this.centre, {
+                                icon: this.icons.blueIcon,
+                            }).bindTooltip(
+                                `<p class="chargeur-titre">Vous êtes ici</p>`
+                            );
+                        }
                         positionActuelle.addTo(this.map);
 
                         this.map.setView(this.centre, this.zoom);
@@ -246,33 +265,40 @@ export default {
                 `Alset |
                 <a href="https://batiste-laloi.com" target="_blank">Batiste Laloi</a>
                 & 
-                <a href="https://maxime-battu.fr" target="_blank">Maxime Battu</a>`;
+                <a href="https://maxime-battu.fr" target="_blank">Maxime Battu</a>
+                - CPE Lyon IRC - 2021/2022`;
 
             this.map = L.map("map", {
                 preferCanvas: true,
                 zoomControl: false,
-            }).setView(this.centre, this.zoom);
+                minZoom:6,
+                maxZoom: 15,
+                maxBounds: L.latLngBounds(L.latLng(40, -5), L.latLng(55, 10))
+            }).setView(this.centre, this.zoom)
+            .fitWorld();
 
             const lightLayer = L.tileLayer(
                 "https://api.mapbox.com/styles/v1/mapbox/streets-v11/tiles/{z}/{x}/{y}?access_token=" +
                     process.env.VUE_APP_MAPBOX_ACCESS_TOKEN,
                 {
                     attribution: credits,
-                    maxZoom: 18,
+                    maxZoom: 22,
+                    maxNativeZoom: 19,
                     id: "mapbox/streets-v11",
                     tileSize: 512,
                     zoomOffset: -1,
                     edgeBufferTiles: 2,
                     visible: true,
                 }
-            ).addTo(this.map);
+            )
 
             const darkLayer = L.tileLayer(
                 "https://api.mapbox.com/styles/v1/mapbox/dark-v10/tiles/{z}/{x}/{y}?access_token=" +
                     process.env.VUE_APP_MAPBOX_ACCESS_TOKEN,
                 {
                     attribution: credits,
-                    maxZoom: 18,
+                    maxZoom: 22,
+                    maxNativeZoom: 19,
                     id: "mapbox/streets-v11",
                     tileSize: 512,
                     zoomOffset: -1,
@@ -281,10 +307,17 @@ export default {
                 }
             );
 
+            // Check the current theme of the browser
+            if (window.matchMedia && window.matchMedia("(prefers-color-scheme: dark)").matches) {
+                darkLayer.addTo(this.map);
+            } else {
+                lightLayer.addTo(this.map);
+            }
+
             L.control
                 .layers({
-                    "🌑 Dark theme": darkLayer,
                     "💡 Light theme": lightLayer,
+                    "🌑 Dark theme": darkLayer,
                 })
                 .addTo(this.map);
 
@@ -386,7 +419,7 @@ export default {
                 autonomie -= e.route.instructions[i].distance;
             }
 
-            autonomie = Math.round(this.autonomieMaxEnMetres / 1000);
+            autonomie = Math.round(autonomie / 1000);
 
             this.$emit("update:routeSwitch", {
                 instructions,
@@ -444,6 +477,7 @@ export default {
             ) {
                 return;
             }
+
             /** initiation des cluster */
             this.clusterGroup.clearLayers();
             const markers = [];
@@ -452,11 +486,17 @@ export default {
             this.bornesOnMap = [];
 
             /** markers */
-            if (picked === "aucun") {
-                this.bornes.forEach((borne) => {
+            
+            this.bornes.forEach((borne) => {
+                const isConnectable = (picked === BORNES_AUCUN) || borne.Connections.some((connection) => {
+                    if (this.connexionsCompatible[picked].connexions.includes(connection.ConnectionTypeID)) {
+                        return true;
+                    }
+                }); 
+
+                if (isConnectable) {
                     markers.push(
-                        L.marker(
-                            [
+                        L.marker([
                                 borne.AddressInfo.Latitude,
                                 borne.AddressInfo.Longitude,
                             ],
@@ -467,72 +507,10 @@ export default {
                     );
 
                     this.bornesOnMap.push(borne);
-                });
+                }
+            });
 
-                this.clusterGroup.addLayers(markers);
-            } else if (picked === "type2") {
-                this.bornes.forEach((borne) => {
-                    let isConnectable = false;
-                    isConnectable = borne.Connections.some((connection) => {
-                        if (
-                            this.connexionsCompatible.type2.connexions.includes(
-                                connection.ConnectionTypeID
-                            )
-                        ) {
-                            return true;
-                        }
-                    });
-
-                    if (isConnectable) {
-                        markers.push(
-                            L.marker(
-                                [
-                                    borne.AddressInfo.Latitude,
-                                    borne.AddressInfo.Longitude,
-                                ],
-                                {
-                                    icon: this.icons.purpleIcon,
-                                }
-                            ).bindTooltip(this.getTooltipHtml(borne))
-                        );
-
-                        this.bornesOnMap.push(borne);
-                    }
-                });
-
-                this.clusterGroup.addLayers(markers);
-            } else if (picked === "superChargeur") {
-                this.bornes.forEach((borne) => {
-                    let isConnectable = false;
-                    isConnectable = borne.Connections.some((connection) => {
-                        if (
-                            this.connexionsCompatible.superChargeur.connexions.includes(
-                                connection.ConnectionTypeID
-                            )
-                        ) {
-                            return true;
-                        }
-                    });
-
-                    if (isConnectable) {
-                        markers.push(
-                            L.marker(
-                                [
-                                    borne.AddressInfo.Latitude,
-                                    borne.AddressInfo.Longitude,
-                                ],
-                                {
-                                    icon: this.icons.purpleIcon,
-                                }
-                            ).bindTooltip(this.getTooltipHtml(borne))
-                        );
-
-                        this.bornesOnMap.push(borne);
-                    }
-                });
-
-                this.clusterGroup.addLayers(markers);
-            }
+            this.clusterGroup.addLayers(markers);
 
             /** ajout du cluster à la map */
             this.map.addLayer(this.clusterGroup);
@@ -646,14 +624,15 @@ export default {
             });
         },
         picked(newValue) {
+            if(this.autonomieMaxEnMetres > this.connexionsCompatible[this.picked].autonomieMax) {
+                this.autonomieMaxEnMetres = this.connexionsCompatible[this.picked].autonomieMax
+            }
             this.picked = newValue;
 
             this.loadSpecifiBornes(this.picked);
 
-            console.log(this.departAdresse);
-
             // On recreer l'itinéraire
-            if (this.departAdresse !== null && this.arriveeAdresse !== null) {
+            if (this.coordonneesItineraire?.depart.coords && this.coordonneesItineraire?.arrivee.coords) {
                 const date = new Date();
 
                 this.waypoints = [];
@@ -702,15 +681,40 @@ export default {
     height: 64px;
     border-radius: 50px;
     background-color: white;
-    z-index: 15;
+    z-index: 100;
     cursor: pointer;
     transition: 0.3s background-color;
     right: 15px;
     box-shadow: 0px 0px 8px 0px var(--manatee);
 }
 
+.localisation::after,
+.options::after {
+    visibility: hidden;
+    background-color: var(--white-bg);
+    color: var(--indigo);
+    font-family: var(--font-family-title);
+    font-size: 14px;
+    font-weight: bold;
+    padding: 5px 20px;
+}
+
 .localisation {
     bottom: 20px;
+}
+
+.localisation::after {
+    content: "Recentrer";
+    position: absolute;
+    top: 32px;
+    transform: translateY(-50%);
+    right:70px;
+
+}
+
+.localisation:hover::after {
+    visibility: visible;
+    transition:.3s;
 }
 
 .localisation:hover,
@@ -723,6 +727,18 @@ export default {
     bottom: 90px;
 }
 
+.options::after {
+    content:"Options";
+    position: absolute;
+    top: -35px;
+    right:-10px;
+}
+
+.options:hover::after {
+      visibility: visible;
+    transition: .3s;
+}
+
 .options-container {
     display: none;
     justify-content: center;
@@ -733,7 +749,7 @@ export default {
     height: 64px;
     min-width: 600px;
     width: 0px;
-    z-index: 10;
+    z-index: 90;
     animation: reduceWidth 0.5s;
 }
 
@@ -771,11 +787,26 @@ export default {
     letter-spacing: 1px;
 }
 
+.vehicules {
+    display: flex;
+    flex-direction: column;
+    justify-content: space-around;
+    align-items: center;
+    width: 50%;
+}
+
+.container-filter {
+    font-family: var(--font-family-title);
+    color: var(--indigo);
+    letter-spacing: 1px;
+    font-weight: bold;
+}
+
 .filter-vehicules {
     display: flex;
     justify-content: space-around;
     flex-direction: row;
-    width: 50%;
+    width: 100%;
 }
 
 .voitures-selector label {

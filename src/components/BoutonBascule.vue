@@ -1,11 +1,10 @@
 <template>
     <div>
-        <div class="goOut" @click="showLeftSlider">
+        <div class="goOut active follow" @click="showLeftSlider">
             <span class="line"></span>
             <span class="line"></span>
             <span class="line"></span>
         </div>
-        <div class="hide" @click="showLeftSlider"></div>
     </div>
 </template>
 
@@ -16,18 +15,11 @@ export default {
         showLeftSlider() {
             let btn = document.querySelector('.goOut');
             let borne = document.querySelector('.bornes');
-            let hide = document.querySelector('.hide');    
             let menu = document.querySelector('.goOut')
 
-            btn.classList.toggle('follow');
-            btn.classList.toggle('active');
+            btn.classList.toggle('follow')
             borne.classList.toggle('active');
-            hide.classList.toggle('disable');
             menu.classList.toggle('active');
-
-            hide.addEventListener('click', () => {
-                btn.classList.toggle('active')
-            })
         }
     }
 };
@@ -91,18 +83,18 @@ export default {
     width: 40%;
 }
 
-.goOut.active .line:nth-child(1) {
+.goOut.follow .line:nth-child(1) {
     transform: translateX(200px);
 }
 
-.goOut.active .line:nth-child(2) {
+.goOut.follow .line:nth-child(2) {
     transform:translateY(0) rotate(45deg);
     top: 50%;
     left: 20%;
     width: 60%;
 }
 
-.goOut.active .line:nth-child(3) {
+.goOut.follow .line:nth-child(3) {
     transform:translateY(0) rotate(-45deg);    
     top: 50%;
     left: 20%;
