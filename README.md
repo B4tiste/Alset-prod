@@ -41,13 +41,14 @@ Liste des fonctionnalités :
 
 * Possibilté de rentrer un lieu de départ et d'arrivée dans le menu déroulant en haut de la page
 
-* Prise en compte des bornes de recharges en France compatibles avec le véhicule sélectionné
+* Prise en compte des bornes de recharges en France compatibles avec le véhicule sélectionné, si aucun véhicules n'est sélectionné, alors le chemin indiqué sera le plus rapide en utilisant toutes les bornes disponibles en France
 
 * Affichage des étapes de la route dans le menu déroulant accessible en haut à gauche de la page, avec de plus amples informations sur le trajet
 
-* Choix du thème de la carte
+* Choix du thème de la carte en haut à droite de la page
 
-    * Clair 💡 / Sombre 🌑
+    * Choix entre : Clair 💡 / Sombre 🌑
+    * Le thème au chargement du site dépend du thème actuelle du navigua de l'utilisateur
 
 
 Listes des modules npm utilisés :
